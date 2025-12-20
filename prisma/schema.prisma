@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id String @id @default(uuid())
+  name String
+  priceInCents Int
+  fileSize Int
+  filePath String
+  imagePath String
+  description String
+  isAvailableForPurchase Boolean @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  adminId String
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  orders Order[]
+  cartitems CartItem[]
+  downloadVerification DownloadVerification[]
+}
+
+model Admin {
+  id String @id @default(uuid())
+  username String @unique
+  password String
+  products Product[]
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order Order[]
+}
+
+model Cart {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId String @unique
+  items CartItem[]
+}
+
+model CartItem {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cartId String 
+  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id String @id @default(uuid())
+  pricePaidInCents Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId String
+  productId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+}
+
+model DownloadVerification {
+  id String @id @default(uuid())
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
